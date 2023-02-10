@@ -33,7 +33,12 @@ func (b *boltDb) CreateBucketIfNotExists(bucketName []byte) error {
 }
 
 func (b *boltDb) Put(bucketName []byte, key, value []byte) error {
-	err := b.db.Update(func(tx *bolt.Tx) error {
+	// 判断桶是否存在，不存在则创建
+	err := b.CreateBucketIfNotExists(bucketName)
+	if err != nil {
+		return err
+	}
+	err = b.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucketName) //打开视图
 		if b == nil {
 			//异常处理
@@ -83,7 +88,7 @@ func (b *boltDb) Delete(bucketName []byte, key []byte) error {
 			return fmt.Errorf("bucket not exist")
 		}
 		// Delete  删除
-		return b.Delete([]byte(key))
+		return b.Delete(key)
 	})
 	return err
 }
